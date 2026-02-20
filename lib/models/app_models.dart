@@ -11,7 +11,7 @@ class ProjectModel {
   final String imageUrl;
   final String description;
   final String longDescription;
-  final String? vlogUrl;
+  final String? vlogContent;
 
   ProjectModel({
     required this.id, 
@@ -19,7 +19,7 @@ class ProjectModel {
     required this.imageUrl,
     required this.description,
     required this.longDescription,
-    this.vlogUrl,
+    this.vlogContent,
   });
 }
 

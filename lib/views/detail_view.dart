@@ -72,8 +72,51 @@ class ProjectDetailView extends ConsumerWidget {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      
                       const SizedBox(height: 50),
+                      
+                      // Vlog Section (Text-based)
+                      if (project.vlogContent != null) ...[
+                        const SectionHeader(title: "Project Diary", subtitle: "Latest Project Vlog"),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppConstants.primaryColor.withOpacity(0.03),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppConstants.primaryColor.withOpacity(0.1)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: AppConstants.primaryColor,
+                                    child: const Icon(Icons.edit_note, color: Colors.white),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Field Officer Update", style: AppFontStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppConstants.textMainColor)),
+                                      Text("Feb 21, 2026", style: AppFontStyles.bodyMedium.copyWith(fontSize: 12)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                project.vlogContent!,
+                                style: AppFontStyles.bodyLarge.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: AppConstants.textSecondaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                      ],
                       
                       // Detailed Content
                       const SectionHeader(title: "The Story", subtitle: "A Journey of Hope"),

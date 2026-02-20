@@ -22,6 +22,7 @@ class _MainViewState extends ConsumerState<MainView> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
+  bool _showBackToTop = false;
 
   final List<String> _sections = [
     'Home',
@@ -67,6 +68,15 @@ class _MainViewState extends ConsumerState<MainView> {
         );
       }
     }
+
+    // Update back to top visibility
+    final firstItem = positions.first;
+    final show = firstItem.index > 0 || firstItem.itemLeadingEdge < -0.2;
+    if (show != _showBackToTop) {
+      setState(() {
+        _showBackToTop = show;
+      });
+    }
   }
 
   void _scrollToSection(int index) {
@@ -105,6 +115,14 @@ class _MainViewState extends ConsumerState<MainView> {
           }
         },
       ),
+      floatingActionButton: _showBackToTop
+          ? FloatingActionButton(
+              onPressed: () => _scrollToSection(0),
+              backgroundColor: AppConstants.primaryColor,
+              mini: true,
+              child: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+            )
+          : null,
     );
   }
 
@@ -605,7 +623,7 @@ class ContactSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isDesktop(context);
     return Container(
-      color: AppConstants.primaryColor,
+      color: AppConstants.cardColor,
       padding: EdgeInsets.symmetric(
         vertical: Responsive.isMobile(context) ? 60 : 100,
         horizontal: isDesktop ? 100 : 20,
@@ -615,7 +633,7 @@ class ContactSection extends StatelessWidget {
           const SectionHeader(
             title: "Join Us",
             subtitle: "Every Contribution Matters",
-            light: true,
+            light: false,
           ),
           const SizedBox(height: 60),
           Responsive(
@@ -658,12 +676,12 @@ class ContactSection extends StatelessWidget {
   Widget _infoItem(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white, size: 28),
+        Icon(icon, color: AppConstants.primaryColor, size: 28),
         const SizedBox(width: 20),
         Expanded(
           child: Text(
             text,
-            style: AppFontStyles.bodyMedium.copyWith(color: Colors.white),
+            style: AppFontStyles.bodyMedium.copyWith(color: AppConstants.textMainColor),
           ),
         ),
       ],

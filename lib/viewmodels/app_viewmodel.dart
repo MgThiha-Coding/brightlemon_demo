@@ -53,8 +53,8 @@ final projectsDataProvider = FutureProvider<List<ProjectModel>>((ref) async {
       title: projectTitles[index],
       imageUrl: projectImages[index],
       description: projectDescs[index],
-      longDescription: "Our mission with the ${projectTitles[index]} is to create a lasting impact on the lives of those in need. We believe that by providing direct support and fostering community involvement, we can overcome challenges like never before. This initiative has already reached over 5,000 individuals, but there is still much more to be done. Your contribution helps us provide the necessary resources, expertise, and time required to make this world a better place. We invite you to watch our vlog to see the transition and success of this project first-hand.",
-      vlogUrl: "test_vlog_id", // Placeholder for vlog
+      longDescription: "Our mission with the ${projectTitles[index]} is to create a lasting impact on the lives of those in need. We believe that by providing direct support and fostering community involvement, we can overcome challenges like never before. This initiative has already reached over 5,000 individuals, but there is still much more to be done. Your contribution helps us provide the necessary resources, expertise, and time required to make this world a better place.",
+      vlogContent: "Today was a momentous day for the ${projectTitles[index]}. Our team arrived on-site early this morning to find the local community already gathered and eager to participate. We've seen a 30% increase in engagement since our last visit, and the results are truly heart-warming. One local resident, Daw Aye Aye, shared how this project has changed her daily life by saving her hours of travel time every day. These stories are why we do what we do. We are currently planning the next phase which will involve more sustainable infrastructure for the local school.",
     ),
   );
 });
