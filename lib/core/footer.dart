@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../core/constants.dart';
 import '../core/font_styles.dart';
 import '../core/responsive.dart';
@@ -56,9 +57,22 @@ class FooterSection extends StatelessWidget {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "© $currentYear LemonBright Foundation. All rights reserved.",
-                      style: AppFontStyles.bodyMedium.copyWith(color: Colors.white54, fontSize: 13),
+                    Row(
+                      children: [
+                        Text(
+                          "© $currentYear LemonBright Foundation. All rights reserved.",
+                          style: AppFontStyles.bodyMedium.copyWith(color: Colors.white54, fontSize: 13),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => context.go('/admin'),
+                          child: Icon(
+                            Icons.lock_outline,
+                            color: Colors.white.withOpacity(0.05),
+                            size: 14,
+                          ),
+                        ),
+                      ],
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -73,9 +87,23 @@ class FooterSection extends StatelessWidget {
                 )
               : Column(
                   children: [
-                    Text(
-                      "© $currentYear LemonBright Foundation. All rights reserved.",
-                      style: AppFontStyles.bodyMedium.copyWith(color: Colors.white54, fontSize: 13),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "© $currentYear LemonBright Foundation. All rights reserved.",
+                          style: AppFontStyles.bodyMedium.copyWith(color: Colors.white54, fontSize: 13),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => context.go('/admin'),
+                          child: Icon(
+                            Icons.lock_outline,
+                            color: Colors.white.withOpacity(0.05),
+                            size: 14,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 15),
                     Row(

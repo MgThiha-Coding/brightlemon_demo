@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,9 @@ import 'views/main_view.dart';
 import 'views/detail_view.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
+
+import 'views/admin/admin_login_view.dart';
+import 'views/admin/admin_dashboard_view.dart';
 
 final _router = GoRouter(
   initialLocation: '/',
@@ -21,10 +25,19 @@ final _router = GoRouter(
         return ProjectDetailView(projectId: id);
       },
     ),
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminLoginView(),
+    ),
+    GoRoute(
+      path: '/admin/dashboard',
+      builder: (context, state) => const AdminDashboardView(),
+    ),
   ],
 );
 
 void main() async {
+  usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
