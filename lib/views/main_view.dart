@@ -34,6 +34,14 @@ class _MainViewState extends ConsumerState<MainView> {
   void initState() {
     super.initState();
     _itemPositionsListener.itemPositions.addListener(_updateActiveSection);
+    
+    // Restore scroll position after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final savedIndex = ref.read(scrollOffsetProvider);
+      if (savedIndex != 0) {
+        _itemScrollController.jumpTo(index: savedIndex);
+      }
+    });
   }
 
   void _updateActiveSection() {
@@ -45,11 +53,18 @@ class _MainViewState extends ConsumerState<MainView> {
         .where((pos) => pos.itemLeadingEdge < 0.5 && pos.itemTrailingEdge > 0.1)
         .fold(-1, (prev, pos) => pos.index);
 
-    if (current != -1 && ref.read(activeSectionProvider) != current) {
-      // Use microtask to avoid building while notifying
-      Future.microtask(
-        () => ref.read(activeSectionProvider.notifier).state = current,
-      );
+    if (current != -1) {
+      if (ref.read(activeSectionProvider) != current) {
+        Future.microtask(
+          () => ref.read(activeSectionProvider.notifier).state = current,
+        );
+      }
+      // Save current position for restoration
+      if (ref.read(scrollOffsetProvider) != current) {
+        Future.microtask(
+          () => ref.read(scrollOffsetProvider.notifier).state = current,
+        );
+      }
     }
   }
 
@@ -95,14 +110,30 @@ class _MainViewState extends ConsumerState<MainView> {
     final isDesktop = Responsive.isDesktop(context);
 
     return AppBar(
-      backgroundColor: Colors.white.withOpacity(0.9),
+      backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      title: Text(
-        AppConstants.appName.toUpperCase(),
-        style: AppFontStyles.h3.copyWith(
-          color: AppConstants.primaryColor,
-          letterSpacing: 2,
+      scrolledUnderElevation: 0,
+      title: RichText(
+        text: TextSpan(
+          style: AppFontStyles.h3.copyWith(
+            color: AppConstants.primaryColor,
+            letterSpacing: -1,
+          ),
+          children: const [
+            TextSpan(
+              text: 'Lemon',
+              style: TextStyle(fontWeight: FontWeight.w400),
+            ),
+            TextSpan(
+              text: 'Bright',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+            TextSpan(
+              text: ' Foundation',
+              style: TextStyle(fontWeight: FontWeight.w300, fontSize: 16),
+            ),
+          ],
         ),
       ),
       actions: isDesktop
@@ -137,27 +168,70 @@ class _MainViewState extends ConsumerState<MainView> {
 
   Widget _buildDrawer() {
     return Drawer(
-      child: ListView(
+      backgroundColor: Colors.white,
+      child: Column(
         children: [
-          DrawerHeader(
-            child: Center(
-              child: Text(
-                AppConstants.appName,
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppConstants.primaryColor.withOpacity(0.05),
+            ),
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
                 style: AppFontStyles.h3.copyWith(
                   color: AppConstants.primaryColor,
+                  letterSpacing: -0.5,
                 ),
+                children: const [
+                  TextSpan(
+                    text: 'Lemon',
+                    style: TextStyle(fontWeight: FontWeight.w400),
+                  ),
+                  TextSpan(
+                    text: 'Bright',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ],
               ),
             ),
           ),
-          ..._sections.asMap().entries.map((entry) {
-            return ListTile(
-              title: Text(entry.value),
-              onTap: () {
-                Navigator.pop(context);
-                _scrollToSection(entry.key);
-              },
-            );
-          }).toList(),
+          const SizedBox(height: 20),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              children: _sections.asMap().entries.map((entry) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    title: Text(
+                      entry.value,
+                      style: AppFontStyles.navLink.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppConstants.primaryColor,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _scrollToSection(entry.key);
+                    },
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Text(
+              "© 2026 LemonBright Foundation",
+              style: AppFontStyles.bodyMedium.copyWith(fontSize: 12),
+            ),
+          ),
         ],
       ),
     );
@@ -173,9 +247,10 @@ class HomeSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeData = ref.watch(homeDataProvider);
     final size = MediaQuery.of(context).size;
+    final isMobile = Responsive.isMobile(context);
 
     return Container(
-      height: size.height * 0.8 - kToolbarHeight,
+      height: isMobile ? size.height * 0.6 : size.height * 0.8 - kToolbarHeight,
       width: double.infinity,
       child: Stack(
         children: [
@@ -185,10 +260,15 @@ class HomeSection extends ConsumerWidget {
               imageUrl:
                   'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1920&q=80',
               fit: BoxFit.cover,
-              placeholder: (context, url) => const ShimmerBox(
-                width: double.infinity,
-                height: double.infinity,
-                borderRadius: 0,
+              placeholder: (context, url) => ShaderMask(
+                shaderCallback: (rect) => LinearGradient(
+                  colors: [Colors.black.withOpacity(0.5), Colors.transparent],
+                ).createShader(rect),
+                child: const ShimmerBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  borderRadius: 0,
+                ),
               ),
             ),
           ),
@@ -207,7 +287,7 @@ class HomeSection extends ConsumerWidget {
           // Content
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: Responsive.isDesktop(context) ? 100 : 40,
+              horizontal: isMobile ? 20 : (Responsive.isDesktop(context) ? 100 : 40),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -228,9 +308,9 @@ class HomeSection extends ConsumerWidget {
                   error: (e, s) => const Text("Welcome to Lemon Solution"),
                 ),
                 const SizedBox(height: 40),
-                ElevatedButton(
+                ModernButton(
+                  text: "Support Our Mission",
                   onPressed: () {},
-                  child: const Text("Support Our Mission"),
                 ),
               ],
             ),
@@ -251,7 +331,7 @@ class AboutSection extends ConsumerWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: 100,
+        vertical: Responsive.isMobile(context) ? 60 : 100,
         horizontal: isDesktop ? 100 : 20,
       ),
       child: Column(
@@ -341,7 +421,7 @@ class ProjectsSection extends ConsumerWidget {
     return Container(
       color: AppConstants.cardColor,
       padding: EdgeInsets.symmetric(
-        vertical: 100,
+        vertical: Responsive.isMobile(context) ? 60 : 100,
         horizontal: isDesktop ? 100 : 20,
       ),
       child: Column(
@@ -394,7 +474,7 @@ class _ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.go('/project/${project.id}'),
+      onTap: () => context.push('/project/${project.id}'),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -473,7 +553,7 @@ class GallerySection extends ConsumerWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: 100,
+        vertical: Responsive.isMobile(context) ? 60 : 100,
         horizontal: isDesktop ? 100 : 20,
       ),
       child: Column(
@@ -524,7 +604,7 @@ class ContactSection extends StatelessWidget {
     return Container(
       color: AppConstants.primaryColor,
       padding: EdgeInsets.symmetric(
-        vertical: 100,
+        vertical: Responsive.isMobile(context) ? 60 : 100,
         horizontal: isDesktop ? 100 : 20,
       ),
       child: Column(
@@ -562,12 +642,12 @@ class ContactSection extends StatelessWidget {
       children: [
         _infoItem(
           Icons.location_on,
-          "123 Innovation Drive, Silicon Valley, CA",
+          "No. 45, Pyay Road, Mayangone Township, Yangon, Myanmar",
         ),
         const SizedBox(height: 20),
-        _infoItem(Icons.email, "hello@lemonsolution.com"),
+        _infoItem(Icons.email, "contact@lemonbright.org"),
         const SizedBox(height: 20),
-        _infoItem(Icons.phone, "+1 (555) 789-2345"),
+        _infoItem(Icons.phone, "+95 9 789 234 567"),
       ],
     );
   }
@@ -588,32 +668,97 @@ class ContactSection extends StatelessWidget {
   }
 
   Widget _buildContactForm() {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          const TextField(decoration: InputDecoration(hintText: "Name")),
-          const SizedBox(height: 20),
-          const TextField(decoration: InputDecoration(hintText: "Email")),
-          const SizedBox(height: 20),
-          const TextField(
-            maxLines: 4,
-            decoration: InputDecoration(hintText: "Message"),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
+              ),
+            ],
           ),
-          const SizedBox(height: 40),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              child: const Text("Send Message"),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Send a Message",
+                style: AppFontStyles.h3.copyWith(
+                  fontSize: 22, 
+                  color: AppConstants.primaryColor,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _compactInput(label: "Name", hint: "Enter your full name"),
+              const SizedBox(height: 16),
+              _compactInput(label: "Email", hint: "your@email.com"),
+              const SizedBox(height: 16),
+              _compactInput(
+                label: "Message", 
+                hint: "Tell us about your interest...", 
+                maxLines: 3,
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ModernButton(
+                  onPressed: () {},
+                  text: "Send Message",
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _compactInput({required String label, required String hint, int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppFontStyles.bodyMedium.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: AppConstants.textMainColor.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          maxLines: maxLines,
+          style: AppFontStyles.bodyMedium.copyWith(fontSize: 15, color: AppConstants.textMainColor),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: AppFontStyles.bodyMedium.copyWith(fontSize: 14, color: Colors.grey[400]),
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppConstants.primaryColor, width: 1.5),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

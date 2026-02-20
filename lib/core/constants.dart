@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 class AppConstants {
-  static const String appName = 'BrightLemon Foundation';
+  static const String appName = 'LemonBright Foundation';
   
   // Compassionate Professional Blue & White
-  static const Color primaryColor = Color(0xFF1E40AF); // Trustworthy Royal Blue
-  static const Color accentColor = Color(0xFFF59E0B);  // Compassionate Amber/Gold
+  static const Color primaryColor = Color(0xFF172554); // Deep Navy/Professional Blue
+  static const Color accentColor = Color(0xFF3B82F6);  // Modern Blue for highlights
   static const Color backgroundColor = Color(0xFFFFFFFF);
-  static const Color cardColor = Color(0xFFF1F5F9);    // Soft Slate/White Surface
+  static const Color cardColor = Color(0xFFF8FAFC);    // Refined Slate/White
   static const Color textMainColor = Color(0xFF0F172A); // Midnight Slate
-  static const Color textSecondaryColor = Color(0xFF64748B); // Cool Gray
+  static const Color textSecondaryColor = Color(0xFF475569); // Professional Steel Gray
   static const Color whiteColor = Colors.white;
-  static const Color errorColor = Color(0xFFDC2626);
+  static const Color errorColor = Color(0xFF991B1B);
 
   // Shimmer Colors
   static const Color shimmerBase = Color(0xFFE0E0E0);

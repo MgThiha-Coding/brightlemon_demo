@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_models.dart';
-import '../services/api_service.dart';
 import '../core/constants.dart';
 
 final activeSectionProvider = StateProvider<int>((ref) => 0);
+final scrollOffsetProvider = StateProvider<int>((ref) => 0);
 
 final homeDataProvider = FutureProvider<String>((ref) async {
   await Future.delayed(AppConstants.mockDelay);
@@ -14,7 +14,7 @@ final aboutDataProvider = FutureProvider<Map<String, String>>((ref) async {
   await Future.delayed(AppConstants.mockDelay);
   return {
     "title": "Dedicated to Human Welfare Since 2010",
-    "description": "BrightLemon Foundation is a non-profit organization committed to providing clean water, education, and healthcare to underserved regions. We believe that every individual deserves a chance to thrive, and together, we can make that a reality. Join us in our journey of compassion.",
+    "description": "LemonBright Foundation is a non-profit organization committed to providing clean water, education, and healthcare to underserved regions. We believe that every individual deserves a chance to thrive, and together, we can make that a reality. Join us in our journey of compassion.",
     "imageUrl": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1000&q=80",
   };
 });

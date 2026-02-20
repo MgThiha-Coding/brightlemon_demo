@@ -56,7 +56,7 @@ class SectionHeader extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: titleColor,
-            letterSpacing: 2,
+            letterSpacing: 0.5, // Reduced from 2
           ),
         ),
         const SizedBox(height: 8),
@@ -74,9 +74,73 @@ class SectionHeader extends StatelessWidget {
         Container(
           width: 60,
           height: 3,
-          color: light ? Colors.white : AppConstants.accentColor,
+          color: light ? Colors.white : AppConstants.primaryColor,
         ),
       ],
+    );
+  }
+}
+
+class ModernButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+  final bool isSecondary;
+
+  const ModernButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    this.isSecondary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: isSecondary ? null : LinearGradient(
+          colors: [
+            AppConstants.primaryColor,
+            AppConstants.primaryColor.withBlue(220),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isSecondary ? Colors.black : AppConstants.primaryColor).withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSecondary ? Colors.white : Colors.transparent,
+          foregroundColor: isSecondary ? AppConstants.primaryColor : Colors.white,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ).copyWith(
+          elevation: WidgetStateProperty.all(0),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Icon(Icons.arrow_forward_rounded, size: 20),
+          ],
+        ),
+      ),
     );
   }
 }

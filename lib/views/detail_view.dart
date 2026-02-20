@@ -18,10 +18,13 @@ class ProjectDetailView extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text("Project Details"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: projectAsync.when(
@@ -56,43 +59,16 @@ class ProjectDetailView extends ConsumerWidget {
                       Text(project.description, style: AppFontStyles.h3.copyWith(color: AppConstants.primaryColor)),
                       const SizedBox(height: 30),
                       
-                      // Vlog Section
-                      const SectionHeader(title: "Project Vlog", subtitle: "See Our Impact in Motion"),
+                      // Project Showcase Image (Static)
+                      const SectionHeader(title: "Project Impact", subtitle: "Visualizing Our Progress"),
                       const SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        height: Responsive.isDesktop(context) ? 500 : 250,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Opacity(
-                              opacity: 0.6,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: CachedNetworkImage(
-                                  imageUrl: project.imageUrl,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.play_circle_fill, color: Colors.white.withOpacity(0.9), size: 80),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  "Watch the Story",
-                                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ],
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: CachedNetworkImage(
+                          imageUrl: project.imageUrl,
+                          width: double.infinity,
+                          height: Responsive.isDesktop(context) ? 500 : 250,
+                          fit: BoxFit.cover,
                         ),
                       ),
                       
@@ -114,12 +90,9 @@ class ProjectDetailView extends ConsumerWidget {
                       
                       const SizedBox(height: 60),
                       Center(
-                        child: ElevatedButton(
+                        child: ModernButton(
                           onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                          ),
-                          child: const Text("Support This Cause Now"),
+                          text: "Support This Cause Now",
                         ),
                       ),
                     ],
@@ -133,7 +106,7 @@ class ProjectDetailView extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Center(
                     child: Text(
-                      "© 2026 BrightLemon Foundation. All Rights Reserved.",
+                      "© 2026 LemonBright Foundation. All Rights Reserved.",
                       style: AppFontStyles.bodyMedium.copyWith(color: Colors.white),
                     ),
                   ),
