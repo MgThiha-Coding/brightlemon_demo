@@ -7,6 +7,7 @@ import '../core/font_styles.dart';
 import '../core/responsive.dart';
 import '../core/widgets.dart';
 import '../viewmodels/app_viewmodel.dart';
+import '../core/footer.dart';
 
 class ProjectDetailView extends ConsumerWidget {
   final String projectId;
@@ -100,17 +101,7 @@ class ProjectDetailView extends ConsumerWidget {
                 ),
                 
                 // Footer
-                Container(
-                  width: double.infinity,
-                  color: AppConstants.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Center(
-                    child: Text(
-                      "© 2026 LemonBright Foundation. All Rights Reserved.",
-                      style: AppFontStyles.bodyMedium.copyWith(color: Colors.white),
-                    ),
-                  ),
-                ),
+                const FooterSection(),
               ],
             ),
           );

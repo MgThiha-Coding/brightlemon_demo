@@ -9,6 +9,7 @@ import '../core/responsive.dart';
 import '../core/widgets.dart';
 import '../viewmodels/app_viewmodel.dart';
 import '../models/app_models.dart';
+import '../core/footer.dart';
 
 class MainView extends ConsumerStatefulWidget {
   const MainView({super.key});
@@ -82,7 +83,7 @@ class _MainViewState extends ConsumerState<MainView> {
       appBar: _buildNavbar(context),
       drawer: Responsive.isMobile(context) ? _buildDrawer() : null,
       body: ScrollablePositionedList.builder(
-        itemCount: _sections.length,
+        itemCount: _sections.length + 1,
         itemScrollController: _itemScrollController,
         itemPositionsListener: _itemPositionsListener,
         itemBuilder: (context, index) {
@@ -97,6 +98,8 @@ class _MainViewState extends ConsumerState<MainView> {
               return const GallerySection();
             case 4:
               return const ContactSection();
+            case 5:
+              return const FooterSection();
             default:
               return const SizedBox();
           }
