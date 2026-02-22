@@ -7,6 +7,7 @@ import '../core/constants.dart';
 import '../core/font_styles.dart';
 import '../core/responsive.dart';
 import '../core/widgets.dart';
+import '../core/scroll_reveal.dart';
 import '../viewmodels/app_viewmodel.dart';
 import '../models/app_models.dart';
 import '../core/footer.dart';
@@ -101,15 +102,35 @@ class _MainViewState extends ConsumerState<MainView> {
             case 0:
               return const HomeSection();
             case 1:
-              return const AboutSection();
+              return const ScrollReveal(
+                duration: Duration(milliseconds: 900),
+                slideOffset: 50,
+                child: AboutSection(),
+              );
             case 2:
-              return const ProjectsSection();
+              return const ScrollReveal(
+                duration: Duration(milliseconds: 900),
+                slideOffset: 50,
+                child: ProjectsSection(),
+              );
             case 3:
-              return const GallerySection();
+              return const ScrollReveal(
+                duration: Duration(milliseconds: 900),
+                slideOffset: 50,
+                child: GallerySection(),
+              );
             case 4:
-              return const ContactSection();
+              return const ScrollReveal(
+                duration: Duration(milliseconds: 900),
+                slideOffset: 50,
+                child: ContactSection(),
+              );
             case 5:
-              return const FooterSection();
+              return const ScrollReveal(
+                duration: Duration(milliseconds: 600),
+                slideOffset: 20,
+                child: FooterSection(),
+              );
             default:
               return const SizedBox();
           }
@@ -261,79 +282,244 @@ class _MainViewState extends ConsumerState<MainView> {
 
 // --- SECTIONS ---
 
-class HomeSection extends ConsumerWidget {
+class HomeSection extends ConsumerStatefulWidget {
   const HomeSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeSection> createState() => _HomeSectionState();
+}
+
+class _HomeSectionState extends ConsumerState<HomeSection>
+    with TickerProviderStateMixin {
+  // --- Image Carousel ---
+  static const _heroImages = [
+    'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1920&q=80',
+  ];
+  int _currentImageIndex = 0;
+
+  // --- Text Entrance Animation ---
+  late final AnimationController _textController;
+  late final Animation<double> _titleOpacity;
+  late final Animation<double> _titleSlide;
+  late final Animation<double> _buttonOpacity;
+  late final Animation<double> _buttonSlide;
+
+  // --- Image Crossfade Animation ---
+  late final AnimationController _imageController;
+  late final Animation<double> _imageFade;
+  bool _carouselStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Text entrance: 1200ms total, title first then button
+    _textController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _titleOpacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _textController, curve: const Interval(0.0, 0.6, curve: Curves.easeOut)),
+    );
+    _titleSlide = Tween<double>(begin: 40, end: 0).animate(
+      CurvedAnimation(parent: _textController, curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic)),
+    );
+    _buttonOpacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _textController, curve: const Interval(0.4, 1.0, curve: Curves.easeOut)),
+    );
+    _buttonSlide = Tween<double>(begin: 30, end: 0).animate(
+      CurvedAnimation(parent: _textController, curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic)),
+    );
+
+    // Image crossfade: 1200ms smooth transition
+    _imageController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _imageFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _imageController, curve: Curves.easeInOut),
+    );
+
+    // Start text animation after a short delay
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _textController.forward().then((_) {
+          // After text animation completes, start the image carousel
+          if (mounted) _startCarousel();
+        });
+      }
+    });
+  }
+
+  void _startCarousel() {
+    _carouselStarted = true;
+    Future.delayed(const Duration(seconds: 5), () => _cycleImage());
+  }
+
+  void _cycleImage() {
+    if (!mounted || !_carouselStarted) return;
+
+    final nextIndex = (_currentImageIndex + 1) % _heroImages.length;
+
+    // Reset and play crossfade
+    _imageController.reset();
+    setState(() => _currentImageIndex = nextIndex);
+    _imageController.forward().then((_) {
+      // Wait 5 seconds then cycle again
+      Future.delayed(const Duration(seconds: 5), () => _cycleImage());
+    });
+  }
+
+  @override
+  void dispose() {
+    _carouselStarted = false;
+    _textController.dispose();
+    _imageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final homeData = ref.watch(homeDataProvider);
     final size = MediaQuery.of(context).size;
     final isMobile = Responsive.isMobile(context);
 
-    return Container(
+    // Previous and current image indices for crossfade
+    final prevIndex = (_currentImageIndex - 1 + _heroImages.length) % _heroImages.length;
+
+    return SizedBox(
       height: isMobile ? size.height * 0.6 : size.height * 0.8 - kToolbarHeight,
       width: double.infinity,
       child: Stack(
         children: [
-          // Banner Background
+          // --- Background Image Carousel with Crossfade ---
+          // Previous image (fades out)
           Positioned.fill(
             child: CachedNetworkImage(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1920&q=80',
+              imageUrl: _heroImages[prevIndex],
               fit: BoxFit.cover,
-              placeholder: (context, url) => ShaderMask(
-                shaderCallback: (rect) => LinearGradient(
-                  colors: [Colors.black.withOpacity(0.5), Colors.transparent],
-                ).createShader(rect),
-                child: const ShimmerBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  borderRadius: 0,
-                ),
+              placeholder: (context, url) => Container(color: Colors.black),
+              errorWidget: (context, url, error) => Container(color: Colors.black),
+            ),
+          ),
+          // Current image (fades in on top)
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _imageFade,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _imageFade.value.clamp(0.0, 1.0),
+                  child: child,
+                );
+              },
+              child: CachedNetworkImage(
+                imageUrl: _heroImages[_currentImageIndex],
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const SizedBox.shrink(),
+                errorWidget: (context, url, error) => const SizedBox.shrink(),
               ),
             ),
           ),
-          // Gradient Overlay
+
+          // --- Gradient Overlay ---
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                  colors: [
+                    Colors.black.withOpacity(0.75),
+                    Colors.black.withOpacity(0.3),
+                    Colors.transparent,
+                  ],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
           ),
-          // Content
+
+          // --- Animated Text Content ---
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: isMobile ? 20 : (Responsive.isDesktop(context) ? 100 : 40),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                homeData.when(
-                  data: (text) => ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 700),
-                    child: Text(
-                      text,
-                      style: AppFontStyles.h1.copyWith(
-                        color: Colors.white,
-                        fontSize: Responsive.isDesktop(context) ? 56 : 36,
+            child: AnimatedBuilder(
+              animation: _textController,
+              builder: (context, _) {
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Animated Title
+                    Opacity(
+                      opacity: _titleOpacity.value.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(0, _titleSlide.value),
+                        child: homeData.when(
+                          data: (text) => ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 700),
+                            child: Text(
+                              text,
+                              style: AppFontStyles.h1.copyWith(
+                                color: Colors.white,
+                                fontSize: Responsive.isDesktop(context) ? 56 : 36,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                          loading: () => const ShimmerBox(width: 600, height: 100),
+                          error: (e, s) => const Text(
+                            "Welcome to LemonBright Foundation",
+                            style: TextStyle(color: Colors.white, fontSize: 36),
+                          ),
+                        ),
                       ),
                     ),
+
+                    const SizedBox(height: 40),
+
+                    // Animated Button
+                    Opacity(
+                      opacity: _buttonOpacity.value.clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(0, _buttonSlide.value),
+                        child: ModernButton(
+                          text: "Support Our Mission",
+                          onPressed: () {},
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+          // --- Carousel Indicator Dots ---
+          Positioned(
+            bottom: 30,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(_heroImages.length, (i) {
+                final isActive = i == _currentImageIndex;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: isActive ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: isActive ? Colors.white : Colors.white38,
+                    borderRadius: BorderRadius.circular(3),
                   ),
-                  loading: () => const ShimmerBox(width: 600, height: 100),
-                  error: (e, s) => const Text("Welcome to Lemon Solution"),
-                ),
-                const SizedBox(height: 40),
-                ModernButton(
-                  text: "Support Our Mission",
-                  onPressed: () {},
-                ),
-              ],
+                );
+              }),
             ),
           ),
         ],
@@ -488,76 +674,117 @@ class ProjectsSection extends ConsumerWidget {
   }
 }
 
-class _ProjectCard extends StatelessWidget {
+class _ProjectCard extends StatefulWidget {
   final ProjectModel project;
   const _ProjectCard({required this.project});
 
   @override
+  State<_ProjectCard> createState() => _ProjectCardState();
+}
+
+class _ProjectCardState extends State<_ProjectCard> {
+  bool _isHovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/project/${project.id}'),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(15),
-                ),
-                child: Hero(
-                  tag: 'project_${project.id}',
-                  child: CachedNetworkImage(
-                    imageUrl: project.imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const ShimmerBox(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: () => context.push('/project/${widget.project.id}'),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.identity()
+            ..translate(0.0, _isHovered ? -8.0 : 0.0, 0.0)
+            ..scale(_isHovered ? 1.02 : 1.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: _isHovered
+                    ? AppConstants.primaryColor.withOpacity(0.15)
+                    : Colors.black.withOpacity(0.05),
+                blurRadius: _isHovered ? 25 : 10,
+                spreadRadius: _isHovered ? 5 : 2,
+                offset: Offset(0, _isHovered ? 12 : 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(15),
+                  ),
+                  child: Hero(
+                    tag: 'project_${widget.project.id}',
+                    child: CachedNetworkImage(
+                      imageUrl: widget.project.imageUrl,
                       width: double.infinity,
-                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const ShimmerBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.title,
-                    style: AppFontStyles.h3.copyWith(fontSize: 18),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    project.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppFontStyles.bodyMedium,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    "Learn More",
-                    style: TextStyle(
-                      color: AppConstants.primaryColor,
-                      fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.project.title,
+                      style: AppFontStyles.h3.copyWith(fontSize: 18),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.project.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppFontStyles.bodyMedium,
+                    ),
+                    const SizedBox(height: 15),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 250),
+                      style: TextStyle(
+                        color: _isHovered
+                            ? AppConstants.accentColor
+                            : AppConstants.primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text("Learn More"),
+                          const SizedBox(width: 4),
+                          AnimatedPadding(
+                            duration: const Duration(milliseconds: 300),
+                            padding: EdgeInsets.only(left: _isHovered ? 6 : 0),
+                            child: Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 16,
+                              color: _isHovered
+                                  ? AppConstants.accentColor
+                                  : AppConstants.primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -596,14 +823,8 @@ class GallerySection extends ConsumerWidget {
                 mainAxisSpacing: 15,
               ),
               itemCount: images.length,
-              itemBuilder: (context, index) => ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: CachedNetworkImage(
-                  imageUrl: images[index].imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const ShimmerBox(width: 150, height: 150),
-                ),
+              itemBuilder: (context, index) => _HoverScaleImage(
+                imageUrl: images[index].imageUrl,
               ),
             ),
             loading: () =>
@@ -611,6 +832,53 @@ class GallerySection extends ConsumerWidget {
             error: (e, s) => const Text("Error loading gallery"),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _HoverScaleImage extends StatefulWidget {
+  final String imageUrl;
+  const _HoverScaleImage({required this.imageUrl});
+
+  @override
+  State<_HoverScaleImage> createState() => _HoverScaleImageState();
+}
+
+class _HoverScaleImageState extends State<_HoverScaleImage> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            AnimatedScale(
+              scale: _isHovered ? 1.08 : 1.0,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+              child: CachedNetworkImage(
+                imageUrl: widget.imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) =>
+                    const ShimmerBox(width: 150, height: 150),
+              ),
+            ),
+            // Subtle overlay on hover
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              color: _isHovered
+                  ? AppConstants.primaryColor.withOpacity(0.15)
+                  : Colors.transparent,
+            ),
+          ],
+        ),
       ),
     );
   }
